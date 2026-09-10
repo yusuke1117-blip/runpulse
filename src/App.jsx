@@ -290,7 +290,7 @@ function App() {
   const [showIntro, setShowIntro] = useState(() => !readLocalValue(LOCAL_INTRO_KEY, false))
   const [introIndex, setIntroIndex] = useState(0)
   const [selectedTarget, setSelectedTarget] = useState('10km')
-  const [customDistanceKm, setCustomDistanceKm] = useState(null)
+  const [customDistancesKm, setCustomDistancesKm] = useState({ running: null, walking: null })
   const [customDistanceInput, setCustomDistanceInput] = useState('')
   const [customDistanceError, setCustomDistanceError] = useState('')
   const [customDistanceOpen, setCustomDistanceOpen] = useState(false)
@@ -447,6 +447,7 @@ function App() {
     }
   }, [screen])
 
+  const customDistanceKm = customDistancesKm[activityType]
   const targetDistanceKm = selectedTarget === 'カスタム' ? customDistanceKm : parseTargetDistance(selectedTarget)
   const distanceKm = kmFromMeters(distanceMeters)
   const goalPaceSeconds = parsePaceToSeconds(settings)
@@ -884,6 +885,9 @@ function App() {
   }
 
   const selectActivity = (nextActivityType) => {
+    if (selectedTarget === 'カスタム') {
+      setCustomDistanceInput(customDistancesKm[nextActivityType] ? String(customDistancesKm[nextActivityType]) : '')
+    }
     setSettings((current) => {
       const prefix = nextActivityType === 'walking' ? 'Walking' : 'Running'
       const minutes = Number(current[`goalPace${prefix}Minutes`])
@@ -904,7 +908,7 @@ function App() {
       setCustomDistanceError('距離は1.0〜100.0kmの範囲で、小数第1位まで入力してください。')
       return
     }
-    setCustomDistanceKm(Math.round(value * 10) / 10)
+    setCustomDistancesKm((current) => ({ ...current, [activityType]: Math.round(value * 10) / 10 }))
     setCustomDistanceOpen(false)
     setCustomDistanceError('')
   }

@@ -1340,6 +1340,38 @@ body {
   font-size: 1rem;
 }
 
+.settings-section {
+  margin: 18px 0 20px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.settings-section h4 {
+  margin: 0 0 14px;
+  color: #8ef3b4;
+  font-size: 0.95rem;
+}
+
+.settings-section .field {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.settings-section .field > span {
+  display: block;
+  margin-bottom: 7px;
+  line-height: 1.4;
+}
+
+.settings-section .field select,
+.settings-section .field input {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+
 @media (min-width: 768px) {
   .app-shell {
     display: flex;

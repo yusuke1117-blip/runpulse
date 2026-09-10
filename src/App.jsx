@@ -1463,7 +1463,7 @@ function App() {
                   <option value="targetAndInterval">目標距離＋一定間隔ごと</option>
                 </select>
               </label>
-              {settings[`${activityType}AudioMode`] === 'interval' && (
+              {['interval', 'targetAndInterval'].includes(settings[`${activityType}AudioMode`]) && (
                 <label className="field">
                   <span>通知間隔（1m単位）</span>
                   <input type="number" min="1" step="1" value={settings[`${activityType}AudioIntervalMeters`]} onChange={(event) => setSettings((current) => ({ ...current, [`${activityType}AudioIntervalMeters`]: Math.max(1, Number(event.target.value) || 1) }))} />

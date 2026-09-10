@@ -526,8 +526,8 @@ function App() {
           const audioPrefix = activityType === 'walking' ? 'walking' : 'running'
           const audioMode = settings[`${audioPrefix}AudioMode`]
           const audioInterval = settings[`${audioPrefix}AudioIntervalMeters`]
-          const reachedTarget = targetDistanceKm && previousDistance < targetDistanceKm * 1000 && next.result.cumulativeDistanceMeters >= targetDistanceKm * 1000 && !targetAlertSentRef.current
-          const reachedInterval = audioMode === 'interval' && Math.floor(next.result.cumulativeDistanceMeters / audioInterval) > Math.floor(previousDistance / audioInterval)
+          const reachedTarget = ['target', 'targetAndInterval'].includes(audioMode) && targetDistanceKm && previousDistance < targetDistanceKm * 1000 && next.result.cumulativeDistanceMeters >= targetDistanceKm * 1000 && !targetAlertSentRef.current
+          const reachedInterval = ['interval', 'targetAndInterval'].includes(audioMode) && Math.floor(next.result.cumulativeDistanceMeters / audioInterval) > Math.floor(previousDistance / audioInterval)
           if (settings.audioOn && (reachedTarget || reachedInterval)) {
             if (reachedTarget) targetAlertSentRef.current = true
             playDistanceAlert(Math.round(next.result.cumulativeDistanceMeters / 1000), settings[`${audioPrefix}AudioSound`])
@@ -697,6 +697,24 @@ function App() {
     }, 1000)
     distanceAlertTimersRef.current.push(timer)
     setSaveMessage(`${kilometer}kmに到達しました`)
+  }
+
+  const previewDistanceAlert = (soundIndex) => {
+    if (!settings.audioOn || !('AudioContext' in window)) return
+    const context = audioContextRef.current || new window.AudioContext()
+    audioContextRef.current = context
+    context.resume().catch(() => {})
+    const frequencies = [880, 660, 880, 1200, 440, 660, 1200, 520, 1000, 760]
+    const oscillator = context.createOscillator()
+    const gain = context.createGain()
+    oscillator.frequency.value = frequencies[soundIndex % frequencies.length]
+    gain.gain.setValueAtTime(0.0001, context.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.18, context.currentTime + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.35)
+    oscillator.connect(gain)
+    gain.connect(context.destination)
+    oscillator.start()
+    oscillator.stop(context.currentTime + 0.4)
   }
 
   const startRun = () => {
@@ -1440,8 +1458,9 @@ function App() {
                 <span>通知タイミング</span>
                 <select value={settings[`${activityType}AudioMode`]} onChange={(event) => setSettings((current) => ({ ...current, [`${activityType}AudioMode`]: event.target.value }))}>
                   <option value="off">通知しない</option>
-                  <option value="target">目標距離に到達したとき</option>
+                  <option value="target">目標距離に到達したとき（1回のみ）</option>
                   <option value="interval">一定間隔ごと</option>
+                  <option value="targetAndInterval">目標距離＋一定間隔ごと</option>
                 </select>
               </label>
               {settings[`${activityType}AudioMode`] === 'interval' && (
@@ -1452,7 +1471,7 @@ function App() {
               )}
               <label className="field">
                 <span>通知音</span>
-                <select value={settings[`${activityType}AudioSound`]} onChange={(event) => setSettings((current) => ({ ...current, [`${activityType}AudioSound`]: Number(event.target.value) }))}>
+                <select value={settings[`${activityType}AudioSound`]} onChange={(event) => { const soundIndex = Number(event.target.value); setSettings((current) => ({ ...current, [`${activityType}AudioSound`]: soundIndex })); previewDistanceAlert(soundIndex) }}>
                   {AUDIO_SOUNDS.map((sound, index) => <option key={sound} value={index}>{sound}</option>)}
                 </select>
               </label>

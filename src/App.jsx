@@ -447,11 +447,17 @@ function App() {
     }
   }, [screen])
 
+  const activityType = settings.activityType || 'running'
   const customDistanceKm = customDistancesKm[activityType]
   const targetDistanceKm = selectedTarget === 'カスタム' ? customDistanceKm : parseTargetDistance(selectedTarget)
   const distanceKm = kmFromMeters(distanceMeters)
   const goalPaceSeconds = parsePaceToSeconds(settings)
-  const activityType = settings.activityType || 'running'
+
+  useEffect(() => {
+    if (selectedTarget === 'カスタム' && !customDistanceOpen) {
+      setCustomDistanceInput(customDistanceKm ? String(customDistanceKm) : '')
+    }
+  }, [activityType, customDistanceKm, selectedTarget, customDistanceOpen])
 
   useEffect(() => {
     const saved = readLocalValue(LOCAL_RUN_STATE_KEY, null)
